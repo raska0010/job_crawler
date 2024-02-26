@@ -1,0 +1,280 @@
+# -*- coding: utf-8 -*-
+
+import requests
+from bs4 import BeautifulSoup as BS
+import re
+import datetime
+import os
+import webbrowser
+import shutil
+
+date = datetime.datetime.now()
+
+
+# # open from save
+# def open_html(file_name):
+#     with open(file_name, 'r') as html_file:
+#         file_content = html_file.read()
+#         return BS(file_content, 'lxml', multi_valued_attributes=None)
+
+
+# Open from web
+def open_html(file_name, method, payload=None):
+    if method == 'get':
+        file_content = requests.get(file_name, params=payload)
+    if method == 'post':
+        file_content = requests.post(file_name, data=payload)
+    file_content.encoding = file_content.apparent_encoding  #  The apparent encoding, provided by the charset_normalizer or chardet libraries.
+    return BS(file_content.text, 'lxml', multi_valued_attributes=None)
+   
+   
+# Write to html
+def write_file():
+    with open(f'results/jobs_{city}.html', 'a') as f:
+        url_name = job.a.text.strip()  # Use add text to create URL name.
+        link = job.a['href']  # Link to the ad.
+        hyperlink_format = '<a href="{link}" target="_blank">{text}</a>'
+        hyperlink = hyperlink_format.format(link=link, text=url_name)
+        f.write(f'{hyperlink}<br><br>')
+
+     
+# Ask user to selects city
+def get_city():
+
+    user_input = input('>>> Do you want to look for new jobs in Köln or in Bonn? Type "1" for Köln. Type "2" for Bonn.\n')
+
+    if user_input == '1' or user_input == '2':
+        city_ = 'Köln' if user_input == '1' else 'Bonn'
+        os.system('clear')
+        return city_
+    else:
+        os.system('clear') 
+        print('''>>> Wrong input!\n''')
+        return get_city()
+
+
+# Files with search results will be stored in the folder results. Check whether the folder results exists. 
+def check_path_results():
+    if os.path.isdir('results'):
+        pass
+    else:
+        print('>>> The folder "results" does not exist')
+        user_input = input('>>> Do you want to create a folder "results"? Type "1" for yes. Type "2" to abort the search.\n')
+        if user_input =='1':
+            os.makedirs('results')
+        if user_input == '2':
+            exit()
+        else:
+            os.system('clear') 
+            print('''>>> Wrong input!\n''')
+            check_path_results()
+
+
+# Ask user whether to open search results in a webbrowser or to finish the programme
+def open_results(city):
+    user_input = input('>>> Do you want to open the search results in your web browser? Type "1" for yes. Type "2" to finish.\n')
+    if user_input == "1":
+        webbrowser.open('file://' + os.getcwd() + f'/results/jobs_{city}.html')
+    if user_input == "2":
+        exit()
+    else:
+        os.system('clear') 
+        print('''>>> Wrong input!\n''')
+        open_results(city)
+
+
+check_path_results()
+
+try:
+    os.remove('jobs_koeln/jobs.html')
+except:
+    print('jobs_koeln.html does not exit')
+
+# Check for internet connection
+
+
+city = get_city()
+
+print(f'>>> Searching for new jobs in {city}\n')
+
+
+
+# latest_jobs = '/Users/robertskatulla/Desktop/python/job_crawler/jobs_koeln/jobs.html'
+# jobs_temp = '/Users/robertskatulla/Desktop/python/job_crawler/jobs_koeln/temp.html'
+
+# if os.path.isfile(latest_jobs):
+#     shutil.copyfile(latest_jobs, jobs_temp)
+#     os.remove('jobs_koeln/jobs.html')
+# else:
+#     open(latest_jobs, 'w').close()
+#     shutil.copyfile(latest_jobs, jobs_temp)
+#     os.remove('jobs_koeln/jobs.html')
+
+
+
+# KULTtweet
+payload = {
+    'data' : city,
+    'Suchen' : 'Jobs+finden'
+}
+content = open_html('https://www.kultweet.de/jobs.php', 'post', payload)
+jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
+for job in jobs:
+    write_file()
+
+
+# Jobforum Kultur
+payload = {'s': city}
+content = open_html('https://jobforum-kultur.eu/', 'get', payload)
+jobs = content.find_all(r'article')  # Look for 'article' tags. They contain the job ad text and link.
+for job in jobs:
+    write_file()
+
+
+# GoodJobs / link= set filter to 100 results
+payload = {
+    'search': None,
+    'search_type': None,
+    'places': city,
+    'distance': '10',
+    'places_type': None,
+    'countrycode': None,
+    'state': None,
+    'latlng': None,
+    'num': '100'  # Set to 100 results per page.
+}
+content = open_html('https://goodjobs.eu/jobs', 'get', payload)
+jobs = content.find_all('a', class_='jobcard')  # Look for 'a' tags with 'class='jobcard'' attribute. They contain the job ad text and link.
+
+for job in jobs:
+    job = job.parent  # Return parent tag of 'a' tag. Necessary to make write_file() work, because it expects a format where a is not the parent tag.
+
+    tags = job.a.find_all('p', class_=re.compile('label-text'))  # The ad text is spread across various attributes. Appends all text fragments to the 'h3' tag.
+    for tag in tags:
+        job.h3.append(', ' + tag.text.strip())  # The ad text is spread across various attributes. Appends all text fragments to the 'h3' tag.
+        tag.decompose()
+
+    tags = job.find_all('span')  # Delete 'span' attributes that contain unwanted text.
+    for tag in tags:
+        tag.decompose()
+
+    write_file()
+
+
+# epojobs / Infos zum Arbeitgeber fehlen
+payload = {
+	"filter-search": "Köln",
+	"limit": "30",
+	"filter_order": "",
+	"filter_order_Dir": "",
+	"limitstart": "",
+	"task": ""
+}
+content = open_html('https://www.epojobs.de/', 'post', payload)
+jobs = content.find_all(class_=re.compile('cat-list-row'))
+for job in jobs:
+    full_text = job.text
+    replace_tag = job.a
+    replace_tag.string = full_text
+    link = job.a['href']
+    job.a['href'] = 'https://epojobs.de'+link  
+    write_file()
+
+
+# Wila Arbeitsmarkt
+for x in range(1,11):  # How to not hard code '11'?
+    content = open_html('https://www.wila-arbeitsmarkt.de/stellenanzeigen/?sortby=angebote_plz&sort=ASC&page='+str(x), 'get')
+    jobs = content.find_all('td', string = re.compile('^50|^510|^511'))
+    for job in jobs:
+        job = job.find_parent('tr')
+        full_text = job.text
+        replace_tag = job.a
+        replace_tag.string = full_text
+        link = job.a['href']
+        job.a['href'] = 'https://www.wila-arbeitsmarkt.de' + link
+        write_file()
+
+
+# Stadt Koeln
+content = open_html('https://www.stadt-koeln.de/politik-und-verwaltung/ausbildung-karriere-bei-der-stadt/stellenangebote/wissenschaft-kultur', 'get')
+jobs = content.find_all('ul', id=re.compile('ziel'))
+for job in jobs:
+    jobs = job.find_all('li')
+    for job in jobs:
+        link = job.a['href']
+        job.a['href'] = 'https://www.stadt-koeln.de/'+link  
+        write_file()
+
+
+
+                    
+                    
+try:
+    os.remove('jobs_koeln/temp.html')
+except:
+    None
+ 
+ 
+print('>>> New file created...\n')
+        
+open_results(city)
+
+
+
+# FINISH
+
+
+    
+
+    
+
+
+
+# interamt
+# content = open_html('Interamt.html')
+# jobs = content.find_all('tr', class_=re.compile('ia-e'))
+# for job in jobs:
+#     full_text = job.text
+#     replace_tag = job.a
+#     replace_tag.string = full_text
+#     link = job.a['href']
+#     job.a['href'] = 'https://interamt.de/koop/app'+link
+#     write_file()
+
+
+# interamt request
+# p = {'data' : 'Köln',
+# 'Suchen' : 'Jobs+finden'}
+# content = requests.post('https://interamt.de/koop/app/trefferliste?9', p)
+# print(content.content)
+
+
+# Kult requests / test
+# p = {
+  #       'data' : 'Köln',
+#         'Suchen' : 'Jobs+finden'
+#         }
+# content = requests.post('https://www.kultweet.de/jobs.php', p).text
+# print(content)
+
+
+#Kulturmanagement / binary mode
+# for x in range(1,6):
+#     content = open_html('https://www.kulturmanagement.net/Stellenmarkt,'+str(x)'?&q=nordrhein&qt=11&srt=datedesc&sf=true')
+#     jobs = content.find_all('div', class_=re.compile('tile'))
+#
+# with open('Kultmanagement.html', 'rb') as html_file:
+#     file_content = html_file.read()
+#     content = BS(file_content, 'lxml', multi_valued_attributes=None)
+#     jobs = content.find_all('div', class_=re.compile('tile'))
+
+
+
+        
+        
+            
+        
+                
+            
+    
+    
