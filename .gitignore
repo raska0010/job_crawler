@@ -1,3 +1,8 @@
 # Saved search results
 results/
+
+# Testing
 testing/
+
+# DS store
+.DS_Store
