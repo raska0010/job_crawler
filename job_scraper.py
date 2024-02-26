@@ -75,6 +75,7 @@ def open_results(city):
     user_input = input('>>> Do you want to open the search results in your web browser? Type "1" for yes. Type "2" to finish.\n')
     if user_input == "1":
         webbrowser.open('file://' + os.getcwd() + f'/results/jobs_{city}.html')
+        exit()
     if user_input == "2":
         exit()
     else:
@@ -85,31 +86,20 @@ def open_results(city):
 
 check_path_results()
 
-try:
-    os.remove('jobs_koeln/jobs.html')
-except:
-    print('jobs_koeln.html does not exit')
-
-# Check for internet connection
-
-
 city = get_city()
+
+
+# File with the results from the last search is deleted
+try:
+    os.remove(f'results/jobs_{city}.html')
+except FileNotFoundError:
+    pass  # Exception does not need to be handled
+
 
 print(f'>>> Searching for new jobs in {city}\n')
 
 
-
-# latest_jobs = '/Users/robertskatulla/Desktop/python/job_crawler/jobs_koeln/jobs.html'
-# jobs_temp = '/Users/robertskatulla/Desktop/python/job_crawler/jobs_koeln/temp.html'
-
-# if os.path.isfile(latest_jobs):
-#     shutil.copyfile(latest_jobs, jobs_temp)
-#     os.remove('jobs_koeln/jobs.html')
-# else:
-#     open(latest_jobs, 'w').close()
-#     shutil.copyfile(latest_jobs, jobs_temp)
-#     os.remove('jobs_koeln/jobs.html')
-
+# Check for internet connection
 
 
 # KULTtweet
