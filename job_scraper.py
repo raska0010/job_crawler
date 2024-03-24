@@ -9,7 +9,7 @@ import webbrowser
 import shutil
 
 
-# Open from web
+# Open website
 def open_html(file_name, method, payload=None):
     if method == 'get':
         file_content = requests.get(file_name, params=payload)
@@ -19,7 +19,7 @@ def open_html(file_name, method, payload=None):
     return BS(file_content.text, 'lxml', multi_valued_attributes=None)
    
    
-# Write to html
+# Add job advertisment to html_file
 def write_file():
     with open(f'results/jobs_{city}.html', 'a') as f:
         url_name = job.a.text.strip()  # Use add text to create URL name.
@@ -29,13 +29,7 @@ def write_file():
         f.write(f'{hyperlink}<br><br>')
 
 
-# Create job ad text and job add link
-
-
-# Add job advertisement to list 
-
-
-# Ask user to selects city
+# Ask user to select city
 def get_city():
 
     user_input = input('>>> Do you want to look for new jobs in Köln or in Bonn? Type "1" for Köln. Type "2" for Bonn.\n')
@@ -85,21 +79,7 @@ check_path_results()
 
 city = get_city()
 
-
-
-
-
-# File with the results from the last search is deleted
-try:
-    os.remove(f'results/jobs_{city}.html')
-except FileNotFoundError:
-    pass  # Exception does not need to be handled
-
-
 print(f'>>> Searching for new jobs in {city}\n')
-
-
-# Check for internet connection
 
 
 # KULTtweet
@@ -147,7 +127,6 @@ for job in jobs:
     tags = job.find_all('span')  # Delete 'span' attributes that contain unwanted text.
     for tag in tags:
         tag.decompose()
-
     write_file()
 
 
@@ -195,76 +174,7 @@ for job in jobs:
         job.a['href'] = 'https://www.stadt-koeln.de/'+link  
         write_file()
 
-
-
-                    
-                    
-try:
-    os.remove('jobs_koeln/temp.html')
-except:
-    None
- 
  
 print('>>> New file created...\n')
         
 open_results(city)
-
-
-
-# FINISH
-
-
-    
-
-    
-
-
-
-# interamt
-# content = open_html('Interamt.html')
-# jobs = content.find_all('tr', class_=re.compile('ia-e'))
-# for job in jobs:
-#     full_text = job.text
-#     replace_tag = job.a
-#     replace_tag.string = full_text
-#     link = job.a['href']
-#     job.a['href'] = 'https://interamt.de/koop/app'+link
-#     write_file()
-
-
-# interamt request
-# p = {'data' : 'Köln',
-# 'Suchen' : 'Jobs+finden'}
-# content = requests.post('https://interamt.de/koop/app/trefferliste?9', p)
-# print(content.content)
-
-
-# Kult requests / test
-# p = {
-  #       'data' : 'Köln',
-#         'Suchen' : 'Jobs+finden'
-#         }
-# content = requests.post('https://www.kultweet.de/jobs.php', p).text
-# print(content)
-
-
-#Kulturmanagement / binary mode
-# for x in range(1,6):
-#     content = open_html('https://www.kulturmanagement.net/Stellenmarkt,'+str(x)'?&q=nordrhein&qt=11&srt=datedesc&sf=true')
-#     jobs = content.find_all('div', class_=re.compile('tile'))
-#
-# with open('Kultmanagement.html', 'rb') as html_file:
-#     file_content = html_file.read()
-#     content = BS(file_content, 'lxml', multi_valued_attributes=None)
-#     jobs = content.find_all('div', class_=re.compile('tile'))
-
-
-
-        
-        
-            
-        
-                
-            
-    
-    
