@@ -3,19 +3,10 @@
 import requests
 from bs4 import BeautifulSoup as BS
 import re
-import datetime
+from datetime import date
 import os
 import webbrowser
 import shutil
-
-date = datetime.datetime.now()
-
-
-# # open from save
-# def open_html(file_name):
-#     with open(file_name, 'r') as html_file:
-#         file_content = html_file.read()
-#         return BS(file_content, 'lxml', multi_valued_attributes=None)
 
 
 # Open from web
@@ -37,7 +28,13 @@ def write_file():
         hyperlink = hyperlink_format.format(link=link, text=url_name)
         f.write(f'{hyperlink}<br><br>')
 
-     
+
+# Create job ad text and job add link
+
+
+# Add job advertisement to list 
+
+
 # Ask user to selects city
 def get_city():
 
@@ -62,7 +59,7 @@ def check_path_results():
         user_input = input('>>> Do you want to create a folder "results"? Type "1" for yes. Type "2" to abort the search.\n')
         if user_input =='1':
             os.makedirs('results')
-        if user_input == '2':
+        elif user_input == '2':
             exit()
         else:
             os.system('clear') 
@@ -76,7 +73,7 @@ def open_results(city):
     if user_input == "1":
         webbrowser.open('file://' + os.getcwd() + f'/results/jobs_{city}.html')
         exit()
-    if user_input == "2":
+    elif user_input == "2":
         exit()
     else:
         os.system('clear') 
@@ -87,6 +84,9 @@ def open_results(city):
 check_path_results()
 
 city = get_city()
+
+
+
 
 
 # File with the results from the last search is deleted
