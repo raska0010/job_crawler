@@ -6,17 +6,8 @@ import re
 from datetime import date
 import os
 import webbrowser
-import shutil
+import web_tools as wb
 
-
-# Open website
-def open_html(file_name, method, payload=None):
-    if method == 'get':
-        file_content = requests.get(file_name, params=payload)
-    if method == 'post':
-        file_content = requests.post(file_name, data=payload)
-    file_content.encoding = file_content.apparent_encoding  #  The apparent encoding, provided by the charset_normalizer or chardet libraries.
-    return BS(file_content.text, 'lxml', multi_valued_attributes=None)
    
    
 # Add job advertisment to html_file
@@ -87,11 +78,14 @@ payload = {
     'data' : city,
     'Suchen' : 'Jobs+finden'
 }
-content = open_html('https://www.kultweet.de/jobs.php', 'post', payload)
-jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
-for job in jobs:
-    write_file()
+content = wb.open_url('https://www.kultweet.de/jobs.php', 'post', payload)
+if content:
+    jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
+    for job in jobs:
+        write_file()
 
+
+exit(0)
 
 # Jobforum Kultur
 payload = {'s': city}
