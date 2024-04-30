@@ -21,7 +21,7 @@ engine = create_engine(url_object)
 
 
 # Test for connection to postgres 
-def test_connection(engine, max_retries=5, delay_seconds=5):
+def test_db_connection(engine, max_retries=5, delay_seconds=5):
     retries = 0
     while retries < max_retries:
         try:
@@ -36,5 +36,5 @@ def test_connection(engine, max_retries=5, delay_seconds=5):
     return False
 
 
-if not test_connection(engine=engine):
+if not test_db_connection(engine=engine):
     exit(1)
