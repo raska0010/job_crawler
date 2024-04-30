@@ -9,3 +9,5 @@ testing/
 
 # .env
 .env
+
+__pycache__
