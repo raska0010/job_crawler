@@ -2,7 +2,16 @@ from dotenv import dotenv_values
 from sqlalchemy import (
     URL,
     create_engine,
-    exc
+    exc,
+    inspect,
+    MetaData,
+    Table,
+    Column,
+    BIGINT,
+    Sequence,
+    TEXT,
+    VARCHAR,
+    DATE
 )
 import subprocess
 import time
@@ -38,3 +47,35 @@ def test_db_connection(engine, max_retries=5, delay_seconds=5):
 
 if not test_db_connection(engine=engine):
     exit(1)
+
+
+# Test if table exist
+def test_table_exist(engine, table_name):
+    ins = inspect(engine)
+    if table_name in ins.get_table_names():
+        return True
+    else:
+        return False
+    
+
+# Create new table (if does not exist)
+def create_db_table(table_name):
+    metadata_obj = MetaData()
+    user_table = Table(
+        table_name,
+        metadata_obj,
+        Column('id', BIGINT, Sequence('ad_id', start=1), primary_key=True),
+        Column('job_description', TEXT, nullable=False ),
+        Column('ad_url', TEXT, unique=True, nullable=False),
+        Column('city', VARCHAR(4), nullable=False),
+        Column('date', DATE, nullable=False)
+    )
+    metadata_obj.create_all(engine)
+
+
+table_name = 'job_ads'
+
+if not test_table_exist(engine, table_name):
+    create_db_table(table_name)
+
+
