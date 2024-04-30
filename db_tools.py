@@ -2,10 +2,21 @@ from dotenv import dotenv_values
 from sqlalchemy import (
     URL,
     create_engine,
-    exc
+    exc,
+    inspect,
+    MetaData,
+    Table,
+    Column,
+    BIGINT,
+    Sequence,
+    TEXT,
+    VARCHAR,
+    DATE,
+    insert
 )
 import subprocess
 import time
+import json 
 
 
 url_object = URL.create(
@@ -38,3 +49,42 @@ def test_db_connection(engine, max_retries=5, delay_seconds=5):
 
 if not test_db_connection(engine=engine):
     exit(1)
+
+
+metadata_obj = MetaData()
+table_name = 'job_ads'
+ads_table = Table(
+    table_name,
+    metadata_obj,
+    Column('id', BIGINT, Sequence('ad_id', start=1), primary_key=True),
+    Column('job_description', TEXT, nullable=False ),
+    Column('ad_url', TEXT, unique=True, nullable=False),
+    Column('city', VARCHAR(50), nullable=False),  # Change to VARCHAR(4)
+    Column('date', DATE, nullable=False)
+)
+
+
+# Test if table exist
+def test_table_exist(engine, table_name):
+    ins = inspect(engine)
+    if table_name in ins.get_table_names():
+        return True
+    else:
+        return False
+    
+
+if not test_table_exist(engine, table_name):
+    metadata_obj.create_all(engine)
+
+
+def insert_data(engine, data, table):
+    with engine.connect() as conn:
+        result = conn.execute(
+            insert(table),
+            data
+        )
+        conn.commit()
+
+
+
+
