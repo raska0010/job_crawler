@@ -11,10 +11,12 @@ from sqlalchemy import (
     Sequence,
     TEXT,
     VARCHAR,
-    DATE
+    DATE,
+    insert
 )
 import subprocess
 import time
+import json 
 
 
 url_object = URL.create(
@@ -49,6 +51,19 @@ if not test_db_connection(engine=engine):
     exit(1)
 
 
+metadata_obj = MetaData()
+table_name = 'job_ads'
+ads_table = Table(
+    table_name,
+    metadata_obj,
+    Column('id', BIGINT, Sequence('ad_id', start=1), primary_key=True),
+    Column('job_description', TEXT, nullable=False ),
+    Column('ad_url', TEXT, unique=True, nullable=False),
+    Column('city', VARCHAR(50), nullable=False),  # Change to VARCHAR(4)
+    Column('date', DATE, nullable=False)
+)
+
+
 # Test if table exist
 def test_table_exist(engine, table_name):
     ins = inspect(engine)
@@ -58,24 +73,18 @@ def test_table_exist(engine, table_name):
         return False
     
 
-# Create new table (if does not exist)
-def create_db_table(table_name):
-    metadata_obj = MetaData()
-    user_table = Table(
-        table_name,
-        metadata_obj,
-        Column('id', BIGINT, Sequence('ad_id', start=1), primary_key=True),
-        Column('job_description', TEXT, nullable=False ),
-        Column('ad_url', TEXT, unique=True, nullable=False),
-        Column('city', VARCHAR(4), nullable=False),
-        Column('date', DATE, nullable=False)
-    )
+if not test_table_exist(engine, table_name):
     metadata_obj.create_all(engine)
 
 
-table_name = 'job_ads'
+def insert_data(engine, data, table):
+    with engine.connect() as conn:
+        result = conn.execute(
+            insert(table),
+            data
+        )
+        conn.commit()
 
-if not test_table_exist(engine, table_name):
-    create_db_table(table_name)
+
 
 
