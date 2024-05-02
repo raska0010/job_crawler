@@ -16,7 +16,8 @@ from sqlalchemy import (
 )
 import subprocess
 import time
-import json 
+import json
+from datetime import date
 
 # url_object = URL.create(
 # "postgresql+psycopg2",
@@ -70,21 +71,16 @@ class DbTools:
         return self.table_name in ins.get_table_names()
     
     def create_table(self, engine=engine):
-        if not self.db_connection(engine):
+        if not self.db_connection(self.engine):  # Is this right?
             raise ConnectionError('Could not connect to database')
 
         if not self.table_exist(engine):
             self.metadata_obj.create_all(engine)
     
-    def insert_data(data, table_name, engine=engine):
+    def insert_data(self, data, table=ads_table, engine=engine):
         with engine.connect() as conn:
             result = conn.execute(
-                insert(table_name),
+                insert(table),
                 data,
             )
             conn.commit()
-
-
-
-# db_tools = DbTools()
-# db_tools.db_connection()
