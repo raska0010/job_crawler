@@ -83,6 +83,9 @@ city = get_city()
 print(f'>>> Searching for new jobs in {city}\n')
 
 
+ads = []
+ad_date = date.today()
+
 # KULTtweet
 url = 'https://www.kultweet.de/jobs.php'
 method = 'post'
@@ -94,9 +97,10 @@ content = webt.open_url(url=url, method=method, payload=payload)
 if content:
     jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
     for job in jobs:
-        print(job)
-        write_file()
+        ads.append(webt.create_ad(job=job, city=city, date=ad_date))
+        
 
+print(ads)
 exit()
 
 # Jobforum Kultur
