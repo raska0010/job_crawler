@@ -44,6 +44,9 @@ class DbTools:
         Column('date', DATE, nullable=False)
     )
 
+    def __init__(self, ads_data):
+        self.data = ads_data
+
     def db_connection(self, engine, max_retries=5, delay_seconds=5):
         retries = 0
         while retries < max_retries:
@@ -67,4 +70,11 @@ class DbTools:
 
         if not self.table_exist(engine):
             self.metadata_obj.create_all(engine)
-            
+    
+    def insert_data(self, table_name):
+        with engine.connect() as conn:
+            result = conn.execute(
+                insert(table_name),
+                self.data,
+            )
+            conn.commit()
