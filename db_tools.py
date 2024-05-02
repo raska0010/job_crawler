@@ -18,20 +18,28 @@ import subprocess
 import time
 import json 
 
+# url_object = URL.create(
+# "postgresql+psycopg2",
+# username="postgres",
+# password=dotenv_values('.env')['password'],  
+# host="localhost",
+# database="culture_jobs",
+# )
 
-url_object = URL.create(
-    "postgresql+psycopg2",
-    username="postgress",
-    password=dotenv_values('.env')['password'],  
-    host="localhost",
-    database="culture_jobs",
-)
-
-
-engine = create_engine(url_object)
+# engine = create_engine(url_object)
 
 
 class DbTools:
+    url_object = URL.create(
+    "postgresql+psycopg2",
+    username="postgres",
+    password=dotenv_values('.env')['password'],  
+    host="localhost",
+    database="culture_jobs",
+    )   
+
+    engine = create_engine(url_object)
+
     metadata_obj = MetaData()
     table_name = 'job_ads'
     ads_table = Table(
@@ -44,10 +52,7 @@ class DbTools:
         Column('date', DATE, nullable=False)
     )
 
-    def __init__(self, ads_data):
-        self.data = ads_data
-
-    def db_connection(self, engine, max_retries=5, delay_seconds=5):
+    def db_connection(self, engine=engine, max_retries=5, delay_seconds=5):
         retries = 0
         while retries < max_retries:
             try:
@@ -60,21 +65,26 @@ class DbTools:
                 time.sleep(delay_seconds)
         return False
     
-    def table_exist(self, engine):
+    def table_exist(self, engine=engine):
         ins = inspect(engine)
         return self.table_name in ins.get_table_names()
     
-    def create_table(self):
-        if not self.db_connection(engine=engine):
+    def create_table(self, engine=engine):
+        if not self.db_connection(engine):
             raise ConnectionError('Could not connect to database')
 
         if not self.table_exist(engine):
             self.metadata_obj.create_all(engine)
     
-    def insert_data(self, table_name):
+    def insert_data(data, table_name, engine=engine):
         with engine.connect() as conn:
             result = conn.execute(
                 insert(table_name),
-                self.data,
+                data,
             )
             conn.commit()
+
+
+
+# db_tools = DbTools()
+# db_tools.db_connection()
