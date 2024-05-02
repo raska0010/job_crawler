@@ -7,6 +7,7 @@ from datetime import date
 import os
 import webbrowser
 import shutil
+import web_tools as webt
 
 
 # Open website
@@ -83,15 +84,20 @@ print(f'>>> Searching for new jobs in {city}\n')
 
 
 # KULTtweet
+url = 'https://www.kultweet.de/jobs.php'
+method = 'post'
 payload = {
     'data' : city,
     'Suchen' : 'Jobs+finden'
 }
-content = open_html('https://www.kultweet.de/jobs.php', 'post', payload)
-jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
-for job in jobs:
-    write_file()
+content = webt.open_url(url=url, method=method, payload=payload)
+if content:
+    jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
+    for job in jobs:
+        print(job)
+        write_file()
 
+exit()
 
 # Jobforum Kultur
 payload = {'s': city}
