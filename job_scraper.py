@@ -85,7 +85,7 @@ print(f'>>> Searching for new jobs in {city}\n')
 
 
 ads = []
-ad_date = date.today()
+ad_date = date.today().strftime('%Y-%m-%d')
 
 db_tools = db_tools.DbTools()
 db_tools.db_connection()
@@ -102,9 +102,11 @@ content = webt.open_url(url=url, method=method, payload=payload)
 if content:
     jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
     for job in jobs:
-        ads.append(webt.create_ad(job=job, city=city, date=ad_date))
+        ads.append(webt.create_ad(job=job, city=city, entry_date=ad_date))
 
 db_tools.insert_data(data=ads)
+
+db_tools.get_new_entries(entry_date=ad_date)
 
 exit()
 
