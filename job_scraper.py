@@ -9,6 +9,7 @@ import webbrowser
 import shutil
 import web_tools as webt
 import db_tools
+import interface_tools
 
 
 # Open website
@@ -79,7 +80,9 @@ def open_results(city):
 
 check_path_results()
 
-city = get_city()
+# city = get_city()
+interface = interface_tools.InterfaceTools()
+city = interface_tools.get_city()
 
 print(f'>>> Searching for new jobs in {city}\n')
 
