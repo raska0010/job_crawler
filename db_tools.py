@@ -12,6 +12,7 @@ from sqlalchemy import (
     TEXT,
     VARCHAR,
     DATE,
+    select
     # insert
 )
 from sqlalchemy.dialects.postgresql import insert
@@ -85,3 +86,9 @@ class DbTools:
                 data
             )
             conn.commit()
+
+    def get_new_entries(self, entry_date):
+        stmt = select(self.ads_table).where(self.ads_table.c.date == entry_date)
+        with self.engine.connect() as conn:
+            for row in conn.execute(stmt):
+                print(row)
