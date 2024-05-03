@@ -82,7 +82,7 @@ check_path_results()
 
 # city = get_city()
 interface = interface_tools.InterfaceTools()
-city = interface_tools.get_city()
+city = interface.get_city()
 
 print(f'>>> Searching for new jobs in {city}\n')
 
@@ -90,9 +90,9 @@ print(f'>>> Searching for new jobs in {city}\n')
 ads = []
 ad_date = date.today().strftime('%Y-%m-%d')
 
-db_tools = db_tools.DbTools()
-db_tools.db_connection()
-db_tools.create_table()
+db = db_tools.DbTools()
+db.db_connection()
+db.create_table()
 
 # KULTtweet
 url = 'https://www.kultweet.de/jobs.php'
@@ -107,9 +107,9 @@ if content:
     for job in jobs:
         ads.append(webt.create_ad(job=job, city=city, entry_date=ad_date))
 
-db_tools.insert_data(data=ads)
+db.insert_data(data=ads)
 
-db_tools.get_new_entries(entry_date=ad_date)
+db.get_new_entries(entry_date=ad_date)
 
 exit()
 
