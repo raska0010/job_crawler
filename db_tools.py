@@ -12,8 +12,9 @@ from sqlalchemy import (
     TEXT,
     VARCHAR,
     DATE,
-    insert
+    # insert
 )
+from sqlalchemy.dialects.postgresql import insert
 import subprocess
 import time
 import json
@@ -76,11 +77,11 @@ class DbTools:
 
         if not self.table_exist(engine):
             self.metadata_obj.create_all(engine)
-    
+
     def insert_data(self, data, table=ads_table, engine=engine):
         with engine.connect() as conn:
             result = conn.execute(
-                insert(table),
-                data,
+                insert(table).on_conflict_do_nothing(index_elements=['ad_url']),
+                data
             )
             conn.commit()
