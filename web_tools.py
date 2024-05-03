@@ -16,10 +16,10 @@ def open_url(url, method, payload=None, timeout=10):
         return
     
 
-def create_ad(job, city, date):
+def create_ad(job, city, entry_date):
     url_name = job.a.text.strip()  # Use ad text to create URL name.
     url = job.a['href']  # Link to the ad
     hyperlink_format = '<a href="{url}" target="_blank">{text}</a>'
     hyperlink = hyperlink_format.format(url=url, text=url_name)
-    ads_dict = {'job_description': url_name, 'ad_url': url, 'city': city, 'date': date.today().strftime('%Y-%m-%d')}
+    ads_dict = {'job_description': url_name, 'ad_url': url, 'city': city, 'date': entry_date}
     return ads_dict
