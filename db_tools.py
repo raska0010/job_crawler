@@ -33,16 +33,6 @@ from datetime import date
 
 
 class DbTools:
-    url_object = URL.create(
-    "postgresql+psycopg2",
-    username="postgres",
-    password=dotenv_values('.env')['password'],  
-    host="localhost",
-    database="culture_jobs",
-    )   
-
-    engine = create_engine(url_object)
-
     metadata_obj = MetaData()
     table_name = 'job_ads'
     ads_table = Table(
@@ -55,11 +45,22 @@ class DbTools:
         Column('date', DATE, nullable=False)
     )
 
-    def db_connection(self, engine=engine, max_retries=5, delay_seconds=5):
+    def __init__(self):
+        
+        url_object = URL.create(
+            "postgresql+psycopg2",
+            username="postgres",
+            password=dotenv_values('.env')['password'],  
+            host="localhost",
+            database="culture_jobs"
+        )   
+        self.engine = create_engine(url_object)
+
+    def db_connection(self, max_retries=5, delay_seconds=5):
         retries = 0
         while retries < max_retries:
             try:
-                engine.connect()
+                self.engine.connect()
                 return True
             except exc.OperationalError as e:
                 print(f'Error connecting to Postgres: {e}\n')
@@ -68,20 +69,20 @@ class DbTools:
                 time.sleep(delay_seconds)
         return False
     
-    def table_exist(self, engine=engine):
-        ins = inspect(engine)
+    def table_exist(self):
+        ins = inspect(self.engine)
         return self.table_name in ins.get_table_names()
     
-    def create_table(self, engine=engine):
-        if not self.db_connection(self.engine):  # Is this right?
+    def create_table(self):
+        if not self.db_connection():  # Is this right?
             raise ConnectionError('Could not connect to database')
 
-        if not self.table_exist(engine):
-            self.metadata_obj.create_all(engine)
+        if not self.table_exist():
+            self.metadata_obj.create_all(self.engine)
 
-    def insert_data(self, data, table=ads_table, engine=engine):
-        with engine.connect() as conn:
-            result = conn.execute(
+    def insert_data(self, data, table=ads_table):
+        with self.engine.connect() as conn:
+            conn.execute(
                 insert(table).on_conflict_do_nothing(index_elements=['ad_url']),
                 data
             )
@@ -92,3 +93,6 @@ class DbTools:
         with self.engine.connect() as conn:
             for row in conn.execute(stmt):
                 print(row)
+
+    def drop_table(self):
+        self.ads_table.drop(self.engine)
