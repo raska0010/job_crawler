@@ -35,8 +35,6 @@ def open_results(city):
         open_results(city)
 
 
-
-
 interface = interface_tools.InterfaceTools()
 city = interface.get_city()
 print(f'>>> Searching for new jobs in {city}\n')
@@ -56,10 +54,12 @@ payload = {
     'data' : city,
     'Suchen' : 'Jobs+finden'
 }
-content = webt.open_url(url=url, method=method, payload=payload)
+content = webt.post(url=url, payload=payload)
 if content:
     jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
     for job in jobs:
+        job.a.string = job.a.text.replace('\n', ' ')
+        job.a['href'] = job.a['href'].replace(' ', '+')
         ads.append(webt.create_ad(job=job, city=city, entry_date=ad_date))
 
 db.insert_data(data=ads)
