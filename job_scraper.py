@@ -7,58 +7,9 @@ from datetime import date
 import os
 import webbrowser
 import shutil
-
-
-# Open website
-def open_html(file_name, method, payload=None):
-    if method == 'get':
-        file_content = requests.get(file_name, params=payload)
-    if method == 'post':
-        file_content = requests.post(file_name, data=payload)
-    file_content.encoding = file_content.apparent_encoding  #  The apparent encoding, provided by the charset_normalizer or chardet libraries.
-    return BS(file_content.text, 'lxml', multi_valued_attributes=None)
-   
-   
-# Add job advertisment to html_file
-def write_file():
-    with open(f'results/jobs_{city}.html', 'a') as f:
-        url_name = job.a.text.strip()  # Use add text to create URL name.
-        link = job.a['href']  # Link to the ad.
-        hyperlink_format = '<a href="{link}" target="_blank">{text}</a>'
-        hyperlink = hyperlink_format.format(link=link, text=url_name)
-        f.write(f'{hyperlink}<br><br>')
-
-
-# Ask user to select city
-def get_city():
-
-    user_input = input('>>> Do you want to look for new jobs in Köln or in Bonn? Type "1" for Köln. Type "2" for Bonn.\n')
-
-    if user_input == '1' or user_input == '2':
-        city_ = 'Köln' if user_input == '1' else 'Bonn'
-        os.system('clear')
-        return city_
-    else:
-        os.system('clear') 
-        print('''>>> Wrong input!\n''')
-        return get_city()
-
-
-# Files with search results will be stored in the folder results. Check whether the folder results exists. 
-def check_path_results():
-    if os.path.isdir('results'):
-        pass
-    else:
-        print('>>> The folder "results" does not exist')
-        user_input = input('>>> Do you want to create a folder "results"? Type "1" for yes. Type "2" to abort the search.\n')
-        if user_input =='1':
-            os.makedirs('results')
-        elif user_input == '2':
-            exit()
-        else:
-            os.system('clear') 
-            print('''>>> Wrong input!\n''')
-            check_path_results()
+import web_tools as webt
+import db_tools
+import interface_tools
 
 
 # Ask user whether to open search results in a webbrowser or to finish the programme
@@ -75,23 +26,38 @@ def open_results(city):
         open_results(city)
 
 
-check_path_results()
-
-city = get_city()
-
+interface = interface_tools.InterfaceTools()
+city = interface.get_city()
 print(f'>>> Searching for new jobs in {city}\n')
+
+ads = []
+ad_date = date.today().strftime('%Y-%m-%d')
+
+db = db_tools.DbTools()
+db.db_connection()
+db.create_table()
 
 
 # KULTtweet
+url = 'https://www.kultweet.de/jobs.php'
+method = 'post'
 payload = {
     'data' : city,
     'Suchen' : 'Jobs+finden'
 }
-content = open_html('https://www.kultweet.de/jobs.php', 'post', payload)
-jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
-for job in jobs:
-    write_file()
+content = webt.post(url=url, payload=payload)
+if content:
+    jobs = content.find_all('li', class_=re.compile(r'row'))  # Look for 'li' tags. They contain the job ad text and link.
+    for job in jobs:
+        job.a.string = job.a.text.replace('\n', ' ')
+        job.a['href'] = job.a['href'].replace(' ', '+')
+        ads.append(webt.create_ad(job=job, city=city, entry_date=ad_date))
 
+db.insert_data(data=ads)
+
+db.get_new_entries(entry_date=ad_date)
+
+exit()
 
 # Jobforum Kultur
 payload = {'s': city}
