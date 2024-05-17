@@ -11,15 +11,6 @@ import web_tools as webt
 import db_tools
 import interface_tools
 
-      
-# Add job advertisment to html_file
-def write_file():
-    with open(f'results/jobs_{city}.html', 'a') as f:
-        url_name = job.a.text.strip()  # Use add text to create URL name.
-        link = job.a['href']  # Link to the ad.
-        hyperlink_format = '<a href="{link}" target="_blank">{text}</a>'
-        hyperlink = hyperlink_format.format(link=link, text=url_name)
-        f.write(f'{hyperlink}<br><br>')
 
 # Ask user whether to open search results in a webbrowser or to finish the programme
 def open_results(city):
